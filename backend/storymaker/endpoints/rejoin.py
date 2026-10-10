@@ -1,5 +1,6 @@
 """Rejoin requests: a member on a new phone asks to get back in as themselves (spec 02.7),
-and whoever may decide approves or declines (spec 02.8).
+whoever may decide approves or declines (spec 02.8), and the new phone checks how its
+request ended (spec 02.9).
 
 The answer carries the new phone's token, but only its hash is stored, on the request
 (ISSUE-055). The token opens nothing until approval moves that hash onto the member;
@@ -9,16 +10,16 @@ the member's current login keeps working until then.
 import sqlite3
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Header
 from pydantic import BaseModel
 
 from ..api import ApiError, api_router
-from ..auth import CurrentMember, trip_member
+from ..auth import CurrentMember, bearer_token, trip_member
 from ..db import get_db
 from ..ids import new_id
 from ..names import MemberName, name_key
 from ..times import utc_now_iso
-from ..tokens import new_token
+from ..tokens import hash_token, new_token
 from .join import trip_by_code
 from .trips import Member, Trip
 
@@ -79,7 +80,7 @@ class RejoinRequestsResponse(BaseModel):
     requests: list[PendingRequest]
 
 
-class DecidedRequestResponse(BaseModel):
+class RejoinRequestResponse(BaseModel):
     request: RejoinRequest
 
 
@@ -116,7 +117,7 @@ def list_rejoin_requests(
     )
 
 
-def _decide(conn: sqlite3.Connection, caller: CurrentMember, request_id: str, status: str) -> DecidedRequestResponse:
+def _decide(conn: sqlite3.Connection, caller: CurrentMember, request_id: str, status: str) -> RejoinRequestResponse:
     row = conn.execute(
         "SELECT r.member_id, r.created_at, m.role FROM rejoin_requests r JOIN members m ON m.id = r.member_id "
         "WHERE r.id = ? AND m.trip_id = ?",
@@ -143,7 +144,7 @@ def _decide(conn: sqlite3.Connection, caller: CurrentMember, request_id: str, st
                 "UPDATE members SET token_hash = (SELECT token_hash FROM rejoin_requests WHERE id = ?) WHERE id = ?",
                 (request_id, row["member_id"]),
             )
-    return DecidedRequestResponse(request=RejoinRequest(id=request_id, status=status, created_at=row["created_at"]))
+    return RejoinRequestResponse(request=RejoinRequest(id=request_id, status=status, created_at=row["created_at"]))
 
 
 @api_router.post("/trips/{trip_id}/rejoin-requests/{request_id}/approve")
@@ -151,7 +152,7 @@ def approve_rejoin_request(
     request_id: str,
     caller: Annotated[CurrentMember, Depends(trip_member)],
     conn: Annotated[sqlite3.Connection, Depends(get_db)],
-) -> DecidedRequestResponse:
+) -> RejoinRequestResponse:
     """Approve: the request's token becomes the member's, and their old phone's login stops working."""
     return _decide(conn, caller, request_id, "approved")
 
@@ -161,6 +162,26 @@ def decline_rejoin_request(
     request_id: str,
     caller: Annotated[CurrentMember, Depends(trip_member)],
     conn: Annotated[sqlite3.Connection, Depends(get_db)],
-) -> DecidedRequestResponse:
+) -> RejoinRequestResponse:
     """Decline: the request's token never works; the member's current login is untouched."""
     return _decide(conn, caller, request_id, "declined")
+
+
+@api_router.get("/trips/{trip_id}/rejoin-requests/{request_id}")
+def check_rejoin_request(
+    trip_id: str,
+    request_id: str,
+    conn: Annotated[sqlite3.Connection, Depends(get_db)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> RejoinRequestResponse:
+    """The new phone checks its request with the token that came with it (02.7), whatever the status.
+    The token is matched against the request, not the members, so it works while still pending.
+    Any other token gets the same answer as a made-up ID, so nobody can probe for requests or trips."""
+    row = conn.execute(
+        "SELECT r.id, r.status, r.created_at FROM rejoin_requests r JOIN members m ON m.id = r.member_id "
+        "WHERE r.id = ? AND m.trip_id = ? AND r.token_hash = ?",
+        (request_id, trip_id, hash_token(bearer_token(authorization))),
+    ).fetchone()
+    if row is None:
+        raise ApiError(404, "request_not_found", "There's no such rejoin request in this trip.")
+    return RejoinRequestResponse(request=RejoinRequest(**dict(row)))

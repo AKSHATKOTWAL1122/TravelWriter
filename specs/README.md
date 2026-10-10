@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** write spec **02.9** (the requester checks their rejoin request).
+**Next up:** write spec **02.10** (the creator picks a backup, who approves the creator's rejoin).
 
 ## Terms
 
@@ -78,7 +78,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 02.6 | Get-trip endpoint (name, members, status) ([spec](02-trips/02.6-get-trip-endpoint.md)) | done |
 | 02.7 | Rejoin request: "I'm already in this trip" (code + existing name → pending request + a token that works once approved) ([spec](02-trips/02.7-rejoin-request.md)) | done |
 | 02.8 | Approve or decline rejoin requests: list the pending ones you may decide (ISSUE-057); the creator decides members' requests; on approval the request's token (02.7) becomes the member's and the old one stops working. The creator's own request is left to 02.10 and 02.11 ([spec](02-trips/02.8-approve-or-decline-rejoin.md)) | done |
-| 02.9 | Requester checks the request with the token from 02.7 (pending, approved, declined or replaced); once approved, that token works | proposed |
+| 02.9 | Requester checks the request with the token from 02.7 (pending, approved, declined or replaced); once approved, that token works ([spec](02-trips/02.9-check-rejoin-request.md)) | done |
 | 02.10 | Backup: the creator picks one other member as backup, or none; 02.6 shows who it is (extends 02.6); the backup alone approves or declines the creator's rejoin, taking effect at once (extends 02.8; ISSUE-056) | proposed |
 | 02.11 | No backup: any other member can approve the creator's rejoin, but it takes effect only after a waiting period (a setting); until then the creator's old login keeps working, sees the request and can cancel it. Extends 02.4 (a due approval takes effect when a token is checked), 02.8 and 02.9 (says when it takes effect) (ISSUE-056) | proposed |
 
@@ -99,7 +99,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 |---|---|---|
 | 04.1 | Expo + TypeScript app that runs in Expo Go | proposed |
 | 04.2 | API client (base URL, token header, errors) | proposed |
-| 04.3 | Remember member token & trip on the device | proposed |
+| 04.3 | Remember member token & trip on the device, or a pending rejoin request (its token, trip and request ID, from 02.7) until 02.9 says how it ended | proposed |
 | 04.4 | Navigation shell: welcome vs. trip | proposed |
 
 ### 05 Create & join (mobile)

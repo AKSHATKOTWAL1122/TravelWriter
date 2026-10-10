@@ -23,17 +23,24 @@ class CurrentMember:
     role: str
 
 
+def bearer_token(authorization: str | None) -> str:
+    """The token from an "Authorization: Bearer <token>" header. Also used by spec 02.9,
+    whose token belongs to a rejoin request rather than a member."""
+    scheme, _, token = (authorization or "").partition(" ")
+    token = token.strip()
+    if scheme.lower() != "bearer" or not token:
+        raise ApiError(401, "token_missing", "This phone isn't signed in to a trip.")
+    return token
+
+
 def current_member(
     conn: Annotated[sqlite3.Connection, Depends(get_db)],
     authorization: Annotated[str | None, Header()] = None,
 ) -> CurrentMember:
     """FastAPI dependency: the member whose token came with the request."""
-    scheme, _, token = (authorization or "").partition(" ")
-    token = token.strip()
-    if scheme.lower() != "bearer" or not token:
-        raise ApiError(401, "token_missing", "This phone isn't signed in to a trip.")
     row = conn.execute(
-        "SELECT id, trip_id, display_name, role FROM members WHERE token_hash = ?", (hash_token(token),)
+        "SELECT id, trip_id, display_name, role FROM members WHERE token_hash = ?",
+        (hash_token(bearer_token(authorization)),),
     ).fetchone()
     if row is None:
         raise ApiError(401, "token_invalid", "This phone's login for the trip no longer works.")
