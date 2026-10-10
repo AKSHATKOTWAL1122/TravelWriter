@@ -14,6 +14,7 @@ from ..join_codes import new_join_code
 from ..names import MemberName, TripName, name_key
 from ..times import utc_now_iso
 from ..tokens import new_token
+from .backup import backup_member_id
 
 
 class CreateTripRequest(BaseModel):
@@ -68,6 +69,7 @@ def create_trip(
 class GetTripResponse(BaseModel):
     trip: Trip
     members: list[Member]
+    backup_member_id: str | None  # the creator's backup, so every member sees who it is (02.10)
 
 
 @api_router.get("/trips/{trip_id}")
@@ -85,4 +87,8 @@ def get_trip(
         "ORDER BY role != 'creator', joined_at, id",
         (member.trip_id,),
     )
-    return GetTripResponse(trip=Trip(**dict(row)), members=[Member(**dict(m)) for m in rows])
+    return GetTripResponse(
+        trip=Trip(**dict(row)),
+        members=[Member(**dict(m)) for m in rows],
+        backup_member_id=backup_member_id(conn, member.trip_id),
+    )

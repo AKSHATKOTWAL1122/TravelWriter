@@ -104,7 +104,7 @@ def test_only_the_creator_decides_a_members_request(client, trip, decision):
 
 
 @pytest.mark.parametrize("decision", ["approve", "decline"])
-def test_nobody_decides_the_creators_own_request_yet(client, trip, decision):
+def test_with_no_backup_nobody_decides_the_creators_own_request(client, trip, decision):
     asked = ask_to_rejoin(client, trip, "Ingrid")
 
     for phone in ("creator", "yusuf", "chidi"):
@@ -144,13 +144,13 @@ def test_a_request_decided_between_the_check_and_the_save_is_still_closed(client
     asked = ask_to_rejoin(client, trip, "Yusuf")
     may_decide = rejoin._may_decide
 
-    def someone_else_declines_first(caller, member_id):
+    def someone_else_declines_first(*args):
         with connect() as conn:
             conn.execute(
                 "UPDATE rejoin_requests SET status = 'declined', closed_at = ? WHERE id = ?",
                 (utc_now_iso(), asked["request"]["id"]),
             )
-        return may_decide(caller, member_id)
+        return may_decide(*args)
 
     monkeypatch.setattr(rejoin, "_may_decide", someone_else_declines_first)
 

@@ -1,6 +1,6 @@
 """Rejoin requests: a member on a new phone asks to get back in as themselves (spec 02.7),
-whoever may decide approves or declines (spec 02.8), and the new phone checks how its
-request ended (spec 02.9).
+whoever may decide approves or declines (spec 02.8; the creator's own request goes to their
+backup, spec 02.10), and the new phone checks how its request ended (spec 02.9).
 
 The answer carries the new phone's token, but only its hash is stored, on the request
 (ISSUE-055). The token opens nothing until approval moves that hash onto the member;
@@ -20,6 +20,7 @@ from ..ids import new_id
 from ..names import MemberName, name_key
 from ..times import utc_now_iso
 from ..tokens import hash_token, new_token
+from .backup import backup_member_id
 from .join import trip_by_code
 from .trips import Member, Trip
 
@@ -84,10 +85,15 @@ class RejoinRequestResponse(BaseModel):
     request: RejoinRequest
 
 
-def _may_decide(caller: CurrentMember, member_id: str) -> bool:
-    """Who decides a rejoin request: the creator, for every other member's request.
-    The creator's own request is left to their backup (02.10) or a waiting period (02.11)."""
-    return caller.role == "creator" and member_id != caller.id
+def _may_decide(caller: CurrentMember, member_id: str, member_role: str, backup_id: str | None) -> bool:
+    """Who decides a rejoin request: the creator, for every other member's request, and the
+    creator's backup alone for the creator's own (02.10). With no backup, nobody can decide
+    the creator's request yet (02.11). Nobody decides a request for themselves."""
+    if member_id == caller.id:
+        return False
+    if member_role == "creator":
+        return caller.id == backup_id
+    return caller.role == "creator"
 
 
 @api_router.get("/trips/{trip_id}/rejoin-requests")
@@ -95,6 +101,7 @@ def list_rejoin_requests(
     caller: Annotated[CurrentMember, Depends(trip_member)], conn: Annotated[sqlite3.Connection, Depends(get_db)]
 ) -> RejoinRequestsResponse:
     """The pending requests the caller may decide, oldest first."""
+    backup_id = backup_member_id(conn, caller.trip_id)
     rows = conn.execute(
         "SELECT r.id, r.status, r.created_at, m.id AS member_id, m.display_name, m.role, m.joined_at "
         "FROM rejoin_requests r JOIN members m ON m.id = r.member_id "
@@ -112,7 +119,7 @@ def list_rejoin_requests(
                 ),
             )
             for row in rows
-            if _may_decide(caller, row["member_id"])
+            if _may_decide(caller, row["member_id"], row["role"], backup_id)
         ]
     )
 
@@ -125,10 +132,15 @@ def _decide(conn: sqlite3.Connection, caller: CurrentMember, request_id: str, st
     ).fetchone()
     if row is None:
         raise ApiError(404, "request_not_found", "There's no such rejoin request in this trip.")
-    if not _may_decide(caller, row["member_id"]):
-        if row["role"] == "creator":
-            raise ApiError(403, "not_allowed", "The creator's own rejoin request can't be approved or declined yet.")
-        raise ApiError(403, "not_allowed", "Only the trip's creator can approve or decline this request.")
+    backup_id = backup_member_id(conn, caller.trip_id)
+    if not _may_decide(caller, row["member_id"], row["role"], backup_id):
+        if row["role"] != "creator":
+            raise ApiError(403, "not_allowed", "Only the trip's creator can approve or decline this request.")
+        if backup_id is None:
+            raise ApiError(
+                403, "not_allowed", "The creator has no backup, so nobody can approve or decline their request yet."
+            )
+        raise ApiError(403, "not_allowed", "Only the creator's backup can approve or decline this request.")
 
     with conn:  # one transaction: the request is closed and, on approval, the login moves, or neither happens
         # Only a pending request changes, so if two people decide at once, the first wins.

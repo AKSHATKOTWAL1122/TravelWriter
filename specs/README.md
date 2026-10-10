@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** write spec **02.10** (the creator picks a backup, who approves the creator's rejoin).
+**Next up:** write spec **02.11** (no backup: any other member approves the creator's rejoin after a waiting period).
 
 ## Terms
 
@@ -35,7 +35,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 - Member **names are unique within a trip**, ignoring case in any language (ISSUE-046).
 - **Join code:** 6 characters from A–Z and 2–9 without the look-alikes O, I and L, e.g. `K7MPQ4`. Typing ignores case, spaces and dashes. Codes are never reused (02.2). **Every member** can see the code and invite others (02.6).
 - **Names** use letters in any language (with their marks), spaces and `-` `'` `.` (plus the name dots `·` `・`), with at least one letter and no emoji or symbols. **Member names:** no digits, 1–10 words, at most 60 characters. **Trip names:** digits allowed, 1–50 words, at most 300 characters. Names are stored exactly as typed (not trimmed) (02.3, ISSUE-052).
-- **Lost phone:** a member can ask to rejoin as themselves; the **creator approves**, and the old phone's login stops working (ISSUE-047). If the **creator** lost their phone, the **backup** they picked approves their rejoin at once; with no backup, **any other member** can approve it, but it takes effect only after a **waiting period**, during which the creator's old phone sees the request and can cancel it. So someone with the code can't join and approve their own takeover of the creator (ISSUE-048, ISSUE-056). The new phone gets its login **when it asks**; it starts working on approval, the moment the old one stops (ISSUE-055). Asking again **replaces** an earlier pending request (ISSUE-054).
+- **Lost phone:** a member can ask to rejoin as themselves; the **creator approves**, and the old phone's login stops working (ISSUE-047). If the **creator** lost their phone, the **backup** they picked approves their rejoin at once; with no backup, **any other member** can approve it, but it takes effect only after a **waiting period**, during which the creator's old phone sees the request and can cancel it. So someone with the code can't join and approve their own takeover of the creator (ISSUE-048, ISSUE-056). The creator picks the backup (or none) and can change it anytime; the picked member has no say, and every member sees who it is (ISSUE-063). The new phone gets its login **when it asks**; it starts working on approval, the moment the old one stops (ISSUE-055). Asking again **replaces** an earlier pending request (ISSUE-054).
 - **Logins don't expire.** A phone's token works until a rejoin replaces it, also after the trip ends, so people can still read the stories (02.4).
 - The creator can **wrap up a part** anytime. The trip stays open, posting continues, and the next part starts automatically. **End trip** wraps up the final part (ISSUE-033).
 - Each moment belongs to the part whose time window contains its **taken time**, so one post can span two parts (ISSUE-031, 033).
@@ -79,7 +79,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 02.7 | Rejoin request: "I'm already in this trip" (code + existing name → pending request + a token that works once approved) ([spec](02-trips/02.7-rejoin-request.md)) | done |
 | 02.8 | Approve or decline rejoin requests: list the pending ones you may decide (ISSUE-057); the creator decides members' requests; on approval the request's token (02.7) becomes the member's and the old one stops working. The creator's own request is left to 02.10 and 02.11 ([spec](02-trips/02.8-approve-or-decline-rejoin.md)) | done |
 | 02.9 | Requester checks the request with the token from 02.7 (pending, approved, declined or replaced); once approved, that token works ([spec](02-trips/02.9-check-rejoin-request.md)) | done |
-| 02.10 | Backup: the creator picks one other member as backup, or none; 02.6 shows who it is (extends 02.6); the backup alone approves or declines the creator's rejoin, taking effect at once (extends 02.8; ISSUE-056) | proposed |
+| 02.10 | Backup: the creator picks one other member as backup, or none; 02.6 shows who it is (extends 02.6); the backup alone approves or declines the creator's rejoin, taking effect at once (extends 02.8; ISSUE-056) ([spec](02-trips/02.10-backup-approver.md)) | done |
 | 02.11 | No backup: any other member can approve the creator's rejoin, but it takes effect only after a waiting period (a setting); until then the creator's old login keeps working, sees the request and can cancel it. Extends 02.4 (a due approval takes effect when a token is checked), 02.8 and 02.9 (says when it takes effect) (ISSUE-056) | proposed |
 
 ### 03 Posting (backend)
@@ -109,7 +109,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 05.2 | Join-trip screen (same name rules as 02.3) | proposed |
 | 05.3 | Share invite code via share sheet | proposed |
 | 05.4 | "I'm already in this trip" screen + waiting for approval | proposed |
-| 05.5 | Rejoin requests: approve / decline (members' requests shown to the creator; the creator's to their backup, or to every other member with the waiting time if there's no backup); the creator's old phone sees requests for itself and can cancel | proposed |
+| 05.5 | Rejoin requests: approve / decline (members' requests shown to the creator; the creator's to their backup, or to every other member with the waiting time if there's no backup); the creator's old phone sees requests for itself and can cancel; the backup's screen says approving gives the creator's login to the new phone, so only approve if the creator asked them (ISSUE-063) | proposed |
 | 05.6 | Creator picks or changes the backup (02.10) | proposed |
 
 ### 06 Timeline (mobile)

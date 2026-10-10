@@ -42,7 +42,8 @@ def test_every_member_gets_the_trip_and_its_members_in_join_order(client, trip):
 
         assert response.status_code == 200
         body = response.json()
-        assert set(body) == {"trip", "members"}
+        assert set(body) == {"trip", "members", "backup_member_id"}
+        assert body["backup_member_id"] is None  # a new trip has no backup (02.10)
         assert body["trip"] == trip["trip"]  # 02.3's object, join code included
         assert body["members"] == [p["member"] for p in people]
     assert [m["display_name"] for m in body["members"]] == [" Zainab", "Yusuf", "Søren"]
