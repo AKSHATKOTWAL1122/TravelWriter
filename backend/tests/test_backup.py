@@ -1,9 +1,14 @@
 import sqlite3
+from typing import Annotated
 
 import pytest
+from fastapi import Depends
 
+from storymaker.auth import CurrentMember, current_member, trip_member
 from storymaker.db import connect
+from storymaker.endpoints import rejoin
 from storymaker.times import utc_now_iso
+from storymaker.tokens import new_token
 
 
 def bearer(token):
@@ -138,6 +143,48 @@ def test_with_no_backup_nobody_decides_the_creators_request(client, trip):
         response = decide(client, trip, asked["request"]["id"], trip[phone]["token"], "approve")
         assert response.status_code == 403 and error_code(response) == "not_allowed"
         assert "no backup" in response.json()["error"]["message"]
+
+
+@pytest.mark.parametrize("decision", ["approve", "decline"])
+def test_a_backup_switched_between_the_check_and_the_save_decides_nothing(client, trip, monkeypatch, decision):
+    pick(client, trip, "mei", member_id(trip, "kofi"))
+    asked = ask_to_rejoin(client, trip, "Mei")
+    may_decide = rejoin._may_decide
+
+    def mei_moves_the_backup_first(*args):
+        with connect() as conn:  # what Mei picking Lucía does
+            conn.execute("UPDATE members SET is_backup = 0 WHERE id = ?", (member_id(trip, "kofi"),))
+            conn.execute("UPDATE members SET is_backup = 1 WHERE id = ?", (member_id(trip, "lucia"),))
+        return may_decide(*args)
+
+    monkeypatch.setattr(rejoin, "_may_decide", mei_moves_the_backup_first)
+    response = decide(client, trip, asked["request"]["id"], trip["kofi"]["token"], decision)
+    monkeypatch.undo()
+
+    assert response.status_code == 403 and error_code(response) == "not_allowed"
+    assert "backup" in response.json()["error"]["message"]
+    assert listed(client, trip, trip["lucia"]["token"]) == [asked["request"]["id"]]  # still pending, now hers
+    assert backup_seen_by(client, trip, "mei") == member_id(trip, "lucia")  # Mei's old login still works
+    assert error_code(client.get(trip_url(trip), headers=bearer(asked["token"]))) == "token_invalid"
+
+
+@pytest.mark.parametrize("phone", ["lucia", None])
+def test_a_login_moved_between_the_check_and_the_save_picks_nothing(client, trip, monkeypatch, phone):
+    pick(client, trip, "mei", member_id(trip, "kofi"))
+    _, new_hash = new_token()
+
+    def checked_then_moved(trip_id: str, member: Annotated[CurrentMember, Depends(current_member)]) -> CurrentMember:
+        checked = trip_member(trip_id, member)
+        with connect() as conn:  # Mei's rejoin is approved in that instant
+            conn.execute("UPDATE members SET token_hash = ? WHERE id = ?", (new_hash, member_id(trip, "mei")))
+        return checked
+
+    monkeypatch.setitem(client.app.dependency_overrides, trip_member, checked_then_moved)
+    response = pick(client, trip, "mei", member_id(trip, phone) if phone else None)
+    monkeypatch.undo()
+
+    assert response.status_code == 401 and error_code(response) == "token_invalid"
+    assert backup_seen_by(client, trip, "kofi") == member_id(trip, "kofi")
 
 
 def test_the_backup_gets_no_say_over_members_requests(client, trip):

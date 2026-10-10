@@ -6,11 +6,11 @@ from fastapi import Depends
 from fastapi.testclient import TestClient
 
 from storymaker.api import api_router
-from storymaker.auth import CurrentMember, current_member, trip_member
+from storymaker.auth import STILL_SIGNED_IN, CurrentMember, current_member, trip_member
 from storymaker.db import connect
 from storymaker.main import create_app
 from storymaker.times import utc_now_iso
-from storymaker.tokens import new_token
+from storymaker.tokens import hash_token, new_token
 
 
 @pytest.fixture
@@ -56,7 +56,9 @@ def test_the_token_identifies_the_member(auth_client):
         response = auth_client.get("/api/_test/me", headers={"Authorization": header})
 
         assert response.status_code == 200
-        assert response.json() == {"id": member_id, "trip_id": trip_id, "display_name": "Valentina", "role": "creator"}
+        assert CurrentMember(**response.json()) == CurrentMember(
+            id=member_id, trip_id=trip_id, display_name="Valentina", role="creator", token_hash=hash_token(token)
+        )
 
 
 @pytest.mark.parametrize("header", [None, "Basic dXNlcjpwYXNz", "Bearer", "Bearer   "])
@@ -98,3 +100,16 @@ def test_tokens_keep_working_after_the_trip_ends(auth_client):
 
     assert auth_client.get("/api/_test/me", headers=bearer(token)).json()["id"] == member_id
     assert auth_client.get(f"/api/trips/{trip_id}/_test/me", headers=bearer(token)).status_code == 200
+
+
+def test_still_signed_in_holds_until_the_login_moves(auth_client):
+    _, member_id, token = create_trip(auth_client, "Andes by bus", "Valentina")
+    caller = CurrentMember(**auth_client.get("/api/_test/me", headers=bearer(token)).json())
+
+    def still_signed_in(conn):
+        return conn.execute(f"SELECT {STILL_SIGNED_IN}", (caller.id, caller.token_hash)).fetchone()[0]
+
+    with connect() as conn:
+        assert still_signed_in(conn) == 1
+        conn.execute("UPDATE members SET token_hash = ? WHERE id = ?", (new_token()[1], member_id))  # as 02.8 does
+        assert still_signed_in(conn) == 0

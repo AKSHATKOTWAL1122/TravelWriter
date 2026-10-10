@@ -14,13 +14,13 @@ from fastapi import Depends, Header
 from pydantic import BaseModel
 
 from ..api import ApiError, api_router
-from ..auth import CurrentMember, bearer_token, trip_member
+from ..auth import STILL_SIGNED_IN, CurrentMember, bearer_token, token_invalid, trip_member
 from ..db import get_db
 from ..ids import new_id
 from ..names import MemberName, name_key
 from ..times import utc_now_iso
 from ..tokens import hash_token, new_token
-from .backup import backup_member_id
+from .backup import STILL_THE_BACKUP, backup_member_id
 from .join import trip_by_code
 from .trips import Member, Trip
 
@@ -124,6 +124,17 @@ def list_rejoin_requests(
     )
 
 
+def _not_allowed(member_role: str, backup_id: str | None) -> ApiError:
+    """The answer for a request the caller may not decide, saying who can (02.10)."""
+    if member_role != "creator":
+        return ApiError(403, "not_allowed", "Only the trip's creator can approve or decline this request.")
+    if backup_id is None:
+        return ApiError(
+            403, "not_allowed", "The creator has no backup, so nobody can approve or decline their request yet."
+        )
+    return ApiError(403, "not_allowed", "Only the creator's backup can approve or decline this request.")
+
+
 def _decide(conn: sqlite3.Connection, caller: CurrentMember, request_id: str, status: str) -> RejoinRequestResponse:
     row = conn.execute(
         "SELECT r.member_id, r.created_at, m.role FROM rejoin_requests r JOIN members m ON m.id = r.member_id "
@@ -134,21 +145,27 @@ def _decide(conn: sqlite3.Connection, caller: CurrentMember, request_id: str, st
         raise ApiError(404, "request_not_found", "There's no such rejoin request in this trip.")
     backup_id = backup_member_id(conn, caller.trip_id)
     if not _may_decide(caller, row["member_id"], row["role"], backup_id):
-        if row["role"] != "creator":
-            raise ApiError(403, "not_allowed", "Only the trip's creator can approve or decline this request.")
-        if backup_id is None:
-            raise ApiError(
-                403, "not_allowed", "The creator has no backup, so nobody can approve or decline their request yet."
-            )
-        raise ApiError(403, "not_allowed", "Only the creator's backup can approve or decline this request.")
+        raise _not_allowed(row["role"], backup_id)
+
+    # The save carries every condition the check relied on (ISSUE-064): the request is still pending
+    # (so if two people decide at once, the first wins), the caller's login still works (02.4), and
+    # for the creator's request, the backup is still the one checked (02.10).
+    conditions = f"id = ? AND status = 'pending' AND {STILL_SIGNED_IN}"
+    args = [request_id, caller.id, caller.token_hash]
+    if row["role"] == "creator":
+        conditions += f" AND {STILL_THE_BACKUP}"
+        args += [caller.trip_id, backup_id]
 
     with conn:  # one transaction: the request is closed and, on approval, the login moves, or neither happens
-        # Only a pending request changes, so if two people decide at once, the first wins.
         closed = conn.execute(
-            "UPDATE rejoin_requests SET status = ?, closed_at = ? WHERE id = ? AND status = 'pending'",
-            (status, utc_now_iso(), request_id),
+            f"UPDATE rejoin_requests SET status = ?, closed_at = ? WHERE {conditions}", (status, utc_now_iso(), *args)
         ).rowcount
         if not closed:
+            # Nothing was saved. Say which condition failed, in the order a fresh call would find it.
+            if not conn.execute(f"SELECT {STILL_SIGNED_IN}", (caller.id, caller.token_hash)).fetchone()[0]:
+                raise token_invalid()
+            if row["role"] == "creator" and (now_backup := backup_member_id(conn, caller.trip_id)) != backup_id:
+                raise _not_allowed(row["role"], now_backup)
             raise ApiError(409, "request_closed", "This request was already approved, declined or replaced.")
         if status == "approved":
             # The new phone's token starts working the moment the old one stops (ISSUE-055).

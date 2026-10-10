@@ -21,6 +21,18 @@ class CurrentMember:
     trip_id: str
     display_name: str
     role: str
+    token_hash: str  # the caller's login, for STILL_SIGNED_IN; never sent back
+
+
+# Guarded saves (ISSUE-064): a save that depends on who's calling adds this to its WHERE, with the
+# caller's id and token_hash as its two parameters, so it only counts if the caller's login still
+# works at that moment; a rejoin approved in the same instant (02.8) moves it to a new phone.
+# A save that matches nothing for this reason answers token_invalid().
+STILL_SIGNED_IN = "EXISTS (SELECT 1 FROM members AS caller WHERE caller.id = ? AND caller.token_hash = ?)"
+
+
+def token_invalid() -> ApiError:
+    return ApiError(401, "token_invalid", "This phone's login for the trip no longer works.")
 
 
 def bearer_token(authorization: str | None) -> str:
@@ -39,11 +51,11 @@ def current_member(
 ) -> CurrentMember:
     """FastAPI dependency: the member whose token came with the request."""
     row = conn.execute(
-        "SELECT id, trip_id, display_name, role FROM members WHERE token_hash = ?",
+        "SELECT id, trip_id, display_name, role, token_hash FROM members WHERE token_hash = ?",
         (hash_token(bearer_token(authorization)),),
     ).fetchone()
     if row is None:
-        raise ApiError(401, "token_invalid", "This phone's login for the trip no longer works.")
+        raise token_invalid()
     return CurrentMember(**dict(row))
 
 

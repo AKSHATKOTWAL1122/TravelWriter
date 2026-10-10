@@ -1,8 +1,13 @@
-import pytest
+from typing import Annotated
 
+import pytest
+from fastapi import Depends
+
+from storymaker.auth import CurrentMember, current_member, trip_member
 from storymaker.db import connect
 from storymaker.endpoints import rejoin
 from storymaker.times import utc_now_iso
+from storymaker.tokens import new_token
 
 
 def bearer(token):
@@ -157,6 +162,27 @@ def test_a_request_decided_between_the_check_and_the_save_is_still_closed(client
     response = decide(client, trip, asked["request"]["id"], trip["creator"]["token"], "approve")
 
     assert response.status_code == 409 and error_code(response) == "request_closed"
+    assert get_trip(client, trip, trip["yusuf"]["token"]).status_code == 200
+    assert error_code(get_trip(client, trip, asked["token"])) == "token_invalid"
+
+
+@pytest.mark.parametrize("decision", ["approve", "decline"])
+def test_a_login_moved_between_the_check_and_the_save_decides_nothing(client, trip, monkeypatch, decision):
+    asked = ask_to_rejoin(client, trip, "Yusuf")
+    new, new_hash = new_token()
+
+    def checked_then_moved(trip_id: str, member: Annotated[CurrentMember, Depends(current_member)]) -> CurrentMember:
+        checked = trip_member(trip_id, member)
+        with connect() as conn:  # the creator's own rejoin is approved in that instant (02.10)
+            conn.execute("UPDATE members SET token_hash = ? WHERE id = ?", (new_hash, trip["creator"]["member"]["id"]))
+        return checked
+
+    monkeypatch.setitem(client.app.dependency_overrides, trip_member, checked_then_moved)
+    response = decide(client, trip, asked["request"]["id"], trip["creator"]["token"], decision)
+    monkeypatch.undo()
+
+    assert response.status_code == 401 and error_code(response) == "token_invalid"
+    assert [r["status"] for r in listed(client, trip, new)] == ["pending"]  # the creator's new phone
     assert get_trip(client, trip, trip["yusuf"]["token"]).status_code == 200
     assert error_code(get_trip(client, trip, asked["token"])) == "token_invalid"
 
