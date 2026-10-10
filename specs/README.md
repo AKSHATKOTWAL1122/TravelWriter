@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** write spec **02.4** (member token auth).
+**Next up:** write spec **02.5** (join-trip endpoint).
 
 ## Terms
 
@@ -36,6 +36,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 - **Join code:** 6 characters from A–Z and 2–9 without the look-alikes O, I and L, e.g. `K7MPQ4`. Typing ignores case, spaces and dashes. Codes are never reused (02.2).
 - **Names** use letters in any language (with their marks), spaces and `-` `'` `.` (plus the name dots `·` `・`), with at least one letter and no emoji or symbols. **Member names:** no digits, 1–10 words, at most 60 characters. **Trip names:** digits allowed, 1–50 words, at most 300 characters. Names are stored exactly as typed (not trimmed) (02.3, ISSUE-052).
 - **Lost phone:** a member can ask to rejoin as themselves; the **creator approves**, and the old phone's login stops working (ISSUE-047). If the **creator** lost their phone, **any other member** can approve their rejoin (ISSUE-048).
+- **Logins don't expire.** A phone's token works until a rejoin replaces it, also after the trip ends, so people can still read the stories (02.4).
 - The creator can **wrap up a part** anytime. The trip stays open, posting continues, and the next part starts automatically. **End trip** wraps up the final part (ISSUE-033).
 - Each moment belongs to the part whose time window contains its **taken time**, so one post can span two parts (ISSUE-031, 033).
 - After the trip ends, items **taken before the end** are still accepted. Items taken after the end are dropped from their post, with a note to the poster (ISSUE-001, 033).
@@ -71,7 +72,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 02.1 | `trips` table (incl. status values) + `members` table (incl. creator role) ([spec](02-trips/02.1-trips-and-members-tables.md)) | done |
 | 02.2 | Join-code generator (short, unique, easy to type) ([spec](02-trips/02.2-join-code-generator.md)) | done |
 | 02.3 | Create-trip endpoint (caller becomes creator) + name rules + member tokens ([spec](02-trips/02.3-create-trip-endpoint.md)) | done |
-| 02.4 | Member token auth (header → current member) | proposed |
+| 02.4 | Member token auth (header → current member) ([spec](02-trips/02.4-member-token-auth.md)) | done |
 | 02.5 | Join-trip endpoint (name rules from 02.3) | proposed |
 | 02.6 | Get-trip endpoint (name, members, status) | proposed |
 | 02.7 | Rejoin request: "I'm already in this trip" (code + existing name → pending request) | proposed |
