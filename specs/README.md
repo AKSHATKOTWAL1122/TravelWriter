@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** write spec **02.3** (create-trip endpoint).
+**Next up:** write spec **02.4** (member token auth).
 
 ## Terms
 
@@ -34,6 +34,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 - Only the **creator** wraps up parts and ends the trip (ISSUE-003).
 - Member **names are unique within a trip**, ignoring case in any language (ISSUE-046).
 - **Join code:** 6 characters from A–Z and 2–9 without the look-alikes O, I and L, e.g. `K7MPQ4`. Typing ignores case, spaces and dashes. Codes are never reused (02.2).
+- **Names** use letters in any language (with their marks), spaces and `-` `'` `.` (plus the name dots `·` `・`), with at least one letter and no emoji or symbols. **Member names:** no digits, 1–10 words, at most 60 characters. **Trip names:** digits allowed, 1–50 words, at most 300 characters. Names are stored exactly as typed (not trimmed) (02.3, ISSUE-052).
 - **Lost phone:** a member can ask to rejoin as themselves; the **creator approves**, and the old phone's login stops working (ISSUE-047). If the **creator** lost their phone, **any other member** can approve their rejoin (ISSUE-048).
 - The creator can **wrap up a part** anytime. The trip stays open, posting continues, and the next part starts automatically. **End trip** wraps up the final part (ISSUE-033).
 - Each moment belongs to the part whose time window contains its **taken time**, so one post can span two parts (ISSUE-031, 033).
@@ -69,9 +70,9 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 |---|---|---|
 | 02.1 | `trips` table (incl. status values) + `members` table (incl. creator role) ([spec](02-trips/02.1-trips-and-members-tables.md)) | done |
 | 02.2 | Join-code generator (short, unique, easy to type) ([spec](02-trips/02.2-join-code-generator.md)) | done |
-| 02.3 | Create-trip endpoint (caller becomes creator) | proposed |
+| 02.3 | Create-trip endpoint (caller becomes creator) + name rules + member tokens ([spec](02-trips/02.3-create-trip-endpoint.md)) | done |
 | 02.4 | Member token auth (header → current member) | proposed |
-| 02.5 | Join-trip endpoint | proposed |
+| 02.5 | Join-trip endpoint (name rules from 02.3) | proposed |
 | 02.6 | Get-trip endpoint (name, members, status) | proposed |
 | 02.7 | Rejoin request: "I'm already in this trip" (code + existing name → pending request) | proposed |
 | 02.8 | Approve or decline a rejoin request: the creator decides (any other member, if it's the creator rejoining); on approval the member gets a new token and the old one stops working | proposed |
@@ -100,8 +101,8 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 ### 05 Create & join (mobile)
 | Spec | What | Status |
 |---|---|---|
-| 05.1 | Create-trip screen | proposed |
-| 05.2 | Join-trip screen | proposed |
+| 05.1 | Create-trip screen (same name rules as 02.3) | proposed |
+| 05.2 | Join-trip screen (same name rules as 02.3) | proposed |
 | 05.3 | Share invite code via share sheet | proposed |
 | 05.4 | "I'm already in this trip" screen + waiting for approval | proposed |
 | 05.5 | Rejoin requests: approve / decline (shown to the creator, or to every member for the creator's own request) | proposed |

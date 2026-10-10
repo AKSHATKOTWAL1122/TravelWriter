@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from . import endpoints  # noqa: F401  loads every endpoint module onto api_router (ISSUE-053)
 from .api import api_router, install_error_handlers
 from .db import connect, run_migrations
 

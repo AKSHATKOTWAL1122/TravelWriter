@@ -74,7 +74,8 @@ scripts/      repo tooling: audit.py (run before every push) and its tests
   Tests are isolated from real settings automatically (`backend/tests/conftest.py`).
 - Stories must be grounded in what people posted: no invented events, people or places.
   (There's no rule that every member must appear; the story follows the posts.)
-- **Endpoints follow spec 01.4:** register on `api_router` (`/api/…`), raise `ApiError(status, code, message)`,
+- **Endpoints follow spec 01.4:** each endpoint module goes in `backend/storymaker/endpoints/` (loaded automatically,
+  never edit `main.py` for it) and registers on `api_router` (`/api/…`); raise `ApiError(status, code, message)`,
   use `storymaker.times` for every time (API and database) and `new_id()` for every ID.
 - Every LLM call goes through one small helper, so the model or provider can be swapped in one place.
 - Agent code must be runnable without network in tests (mock the LLM helper).

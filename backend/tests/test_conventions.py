@@ -125,3 +125,16 @@ def test_new_ids_are_random_url_safe_strings():
 
     assert len(set(ids)) == 10_000
     assert all(re.fullmatch(r"[A-Za-z0-9_-]{22}", i) for i in ids)
+
+
+def test_every_endpoint_module_is_loaded_at_startup(client):
+    # ISSUE-053: a module in storymaker/endpoints/ is live without editing main.py.
+    import pkgutil
+    import sys
+
+    from storymaker import endpoints
+
+    modules = [module.name for module in pkgutil.iter_modules(endpoints.__path__)]
+    assert "trips" in modules
+    assert all(f"storymaker.endpoints.{name}" in sys.modules for name in modules)
+    assert client.post("/api/trips", json={}).status_code == 422  # 02.3's endpoint answers
