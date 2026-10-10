@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** write spec **02.2** (join codes).
+**Next up:** write spec **02.3** (create-trip endpoint).
 
 ## Terms
 
@@ -33,6 +33,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 **Parts & ending the trip**
 - Only the **creator** wraps up parts and ends the trip (ISSUE-003).
 - Member **names are unique within a trip**, ignoring case in any language (ISSUE-046).
+- **Join code:** 6 characters from A–Z and 2–9 without the look-alikes O, I and L, e.g. `K7MPQ4`. Typing ignores case, spaces and dashes. Codes are never reused (02.2).
 - **Lost phone:** a member can ask to rejoin as themselves; the **creator approves**, and the old phone's login stops working (ISSUE-047). If the **creator** lost their phone, **any other member** can approve their rejoin (ISSUE-048).
 - The creator can **wrap up a part** anytime. The trip stays open, posting continues, and the next part starts automatically. **End trip** wraps up the final part (ISSUE-033).
 - Each moment belongs to the part whose time window contains its **taken time**, so one post can span two parts (ISSUE-031, 033).
@@ -67,7 +68,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | Spec | What | Status |
 |---|---|---|
 | 02.1 | `trips` table (incl. status values) + `members` table (incl. creator role) ([spec](02-trips/02.1-trips-and-members-tables.md)) | done |
-| 02.2 | Join-code generator (short, unique, easy to type) | proposed |
+| 02.2 | Join-code generator (short, unique, easy to type) ([spec](02-trips/02.2-join-code-generator.md)) | done |
 | 02.3 | Create-trip endpoint (caller becomes creator) | proposed |
 | 02.4 | Member token auth (header → current member) | proposed |
 | 02.5 | Join-trip endpoint | proposed |

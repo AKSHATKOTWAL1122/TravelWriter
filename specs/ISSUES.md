@@ -7,10 +7,9 @@ Spec numbers in the "Clash" column are from the roadmap version where the issue 
 
 ## Open
 
-_None._ New findings go here as:
-
 | ID | Type | Clash | Proposed fix |
 |---|---|---|---|
+| ISSUE-051 | gap | Found while writing **02.2**: no spec limits wrong join-code attempts, so someone could keep trying codes until one works and join a trip (02.5). Harmless while the backend only runs on local Wi-Fi (ISSUE-015); it matters once the backend is hosted. | Leave open until hosting is decided; then add a spec limiting attempts per device/IP before the first real trip. |
 
 ## Resolved
 
