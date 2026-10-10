@@ -1,3 +1,4 @@
+import re
 import sqlite3
 
 import pytest
@@ -32,6 +33,18 @@ def test_migrations_run_in_number_order_and_only_once(tmp_path):
 
     assert run_migrations(conn, migrations) == []
     assert conn.execute("SELECT COUNT(*) FROM places").fetchone()[0] == 1
+
+
+def test_applied_at_uses_the_shared_time_format(tmp_path):
+    # ISSUE-045: same format as the API (spec 01.4), so text order = time order.
+    migrations = tmp_path / "migrations"
+    migrations.mkdir()
+    write(migrations, "0001_create_places.sql", "CREATE TABLE places (id TEXT PRIMARY KEY);")
+    conn = connect()
+    run_migrations(conn, migrations)
+
+    applied_at = conn.execute("SELECT applied_at FROM schema_migrations").fetchone()["applied_at"]
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z", applied_at)
 
 
 def test_broken_migration_is_rolled_back_and_named(tmp_path):

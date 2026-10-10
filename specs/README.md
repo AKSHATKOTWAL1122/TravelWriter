@@ -52,7 +52,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 01.1 | Project setup: `uv`, FastAPI app, `GET /health`, pytest + test client, git repo ([spec](01-backend-foundation/01.1-project-setup.md)) | done |
 | 01.2 | Settings from the environment + `.env.example` ([spec](01-backend-foundation/01.2-settings-from-env.md)) | done |
 | 01.3 | SQLite database + numbered migrations (tests use a throwaway DB) ([spec](01-backend-foundation/01.3-database-and-migrations.md)) | done |
-| 01.4 | API conventions: `/api/` prefix, one JSON error shape, ISO-8601 UTC times, string IDs (ISSUE-040) | proposed |
+| 01.4 | API conventions: `/api/` prefix, one JSON error shape, ISO-8601 UTC times, string IDs (ISSUE-040) ([spec](01-backend-foundation/01.4-api-conventions.md)) | done |
 
 ### 02 Trips (backend)
 | Spec | What | Status |

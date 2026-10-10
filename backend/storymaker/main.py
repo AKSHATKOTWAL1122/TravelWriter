@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from .api import api_router, install_error_handlers
 from .db import connect, run_migrations
 
 
@@ -16,9 +17,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="StoryMaker", lifespan=lifespan)
+def create_app() -> FastAPI:
+    app = FastAPI(title="StoryMaker", lifespan=lifespan)
+    install_error_handlers(app)
+
+    @app.get("/health")
+    def health() -> dict[str, str]:
+        return {"status": "ok"}
+
+    app.include_router(api_router)
+    return app
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+app = create_app()

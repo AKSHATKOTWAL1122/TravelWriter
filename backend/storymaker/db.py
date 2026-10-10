@@ -1,9 +1,9 @@
 import sqlite3
 from collections.abc import Iterator
-from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import get_settings
+from .times import utc_now_iso
 
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 DB_FILENAME = "storymaker.db"
@@ -59,7 +59,7 @@ def run_migrations(conn: sqlite3.Connection, migrations_dir: Path = MIGRATIONS_D
             conn.executescript("BEGIN;\n" + path.read_text())
             conn.execute(
                 "INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)",
-                (path.name, datetime.now(timezone.utc).isoformat()),
+                (path.name, utc_now_iso()),
             )
             conn.commit()
         except sqlite3.Error as e:
