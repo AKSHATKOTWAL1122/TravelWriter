@@ -50,7 +50,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | Spec | What | Status |
 |---|---|---|
 | 01.1 | Project setup: `uv`, FastAPI app, `GET /health`, pytest + test client, git repo ([spec](01-backend-foundation/01.1-project-setup.md)) | done |
-| 01.2 | Config from env + `.env.example` | proposed |
+| 01.2 | Settings from the environment + `.env.example` ([spec](01-backend-foundation/01.2-settings-from-env.md)) | done |
 | 01.3 | SQLite connection + simple migrations (tests use a throwaway DB) | proposed |
 | 01.4 | API conventions: `/api/` prefix, one JSON error shape, ISO-8601 UTC times, string IDs (ISSUE-040) | proposed |
 
@@ -130,7 +130,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 ### 10 LLM helper (backend)
 | Spec | What | Status |
 |---|---|---|
-| 10.1 | Gemini 2.5 Flash call returning a Pydantic object | proposed |
+| 10.1 | Gemini 2.5 Flash call returning a Pydantic object (API key passed from `Settings` explicitly, ISSUE-042) | proposed |
 | 10.2 | Accept images as input (callers supply them) | proposed |
 | 10.3 | Mock mode for tests | proposed |
 | 10.4 | Retry on errors and rate-limit responses | proposed |

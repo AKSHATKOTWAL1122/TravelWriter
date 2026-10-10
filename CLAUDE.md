@@ -62,7 +62,11 @@ specs/        <feature>/<id>-<slug>.md small specs, README.md (roadmap, decision
 ## Rules
 
 - Product decisions live in `specs/README.md` ("Product decisions so far"). Follow them.
-- Secrets come from the environment (`GEMINI_API_KEY`). Never commit keys; keep a `.env.example` with names only.
+- Secrets come from the environment (`GEMINI_API_KEY`). Never commit keys; `backend/.env.example` holds names only.
+- **Settings:** every backend setting lives in `Settings` (`backend/storymaker/config.py`). A spec that adds one
+  adds it there **and** to `backend/.env.example` together. The app's own settings use the `STORYMAKER_` prefix;
+  third-party keys keep their standard names. App code reads them via `get_settings()`, never `os.environ`.
+  Tests are isolated from real settings automatically (`backend/tests/conftest.py`).
 - Stories must be grounded in what people posted: no invented events, people or places.
   (There's no rule that every member must appear; the story follows the posts.)
 - Every LLM call goes through one small helper, so the model or provider can be swapped in one place.
