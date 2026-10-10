@@ -30,16 +30,17 @@ _None._ New findings go here as:
 | ISSUE-012 | Rate limits handled in two places | 10.4 retries; 11.5 caps parallel calls. |
 | ISSUE-013 | Trip status values undefined | Defined in 02.1. |
 | ISSUE-014 | Story language? | Always English (11.6, CLAUDE.md). |
+| ISSUE-015 | Where does the backend run? | Locally for now (phones on the same Wi-Fi). Hosting is decided before the first real trip. |
+| ISSUE-016 | How the app loads members-only media | Signed links valid ~24 h (03.8); the app caches by media ID (06.2). |
 | ISSUE-017 | Story starts at trip end vs. late posts still uploading | Wait until no phone holds moments taken before the cut-off, or the creator forces it. Done per part since ISSUE-037 (09.4–09.7, 12.1, 13.1). |
 | ISSUE-018 | No limit on items per post | Max 5 items; videos 5 s + 1 s buffer (ISSUE-026); photos shrunk on the phone (03.1, 03.5, 08.2, 08.5). |
+| ISSUE-019 | Gallery video longer than 5 s | The person trims it themselves, outside the app (phone's gallery/editor). The app refuses videos over the limit (5 s + 1 s buffer) with a message (08.2). |
 | ISSUE-020 | Timeline by upload time vs. story chronology | Not a clash: the timeline uses upload time, and the story uses capture time (11.2). Made explicit. |
 | ISSUE-021 | CLAUDE.md said "never assume a language" vs. English-only story | CLAUDE.md now says posts may be in any language; the story is English. |
-| ISSUE-015 | Where does the backend run? | Locally for now (phones on the same Wi-Fi). Hosting is decided before the first real trip. |
-| ISSUE-019 | Gallery video longer than 5 s | The person trims it themselves, outside the app (phone's gallery/editor). The app refuses videos over the limit (5 s + 1 s buffer) with a message (08.2). |
-| ISSUE-016 | How the app loads members-only media | Signed links valid ~24 h (03.8); the app caches by media ID (06.2). |
 | ISSUE-022 | A member who never reports blocks the story | The creator decides: 09.7 shows who's still holding moments, and the creator can start anyway (09.6). |
-| ISSUE-025 | Signed links expire after ~24 h vs. the story being read days later (13.2) | The parts & stories endpoint (12.4) signs links fresh each time it's called. |
+| ISSUE-023 | CLAUDE.md layout said "one tiny spec per feature" vs. features split into specs | Layout line fixed. |
 | ISSUE-024 | In-app trimming might need a native module that Expo Go can't load | Not needed: trimming happens outside the app (ISSUE-019), so Expo Go stays. |
+| ISSUE-025 | Signed links expire after ~24 h vs. the story being read days later (13.2) | The parts & stories endpoint (12.4) signs links fresh each time it's called. |
 | ISSUE-026 | Phone and server video-length checks could disagree (a 5.03 s clip) | One limit with a 1 s buffer: anything ≤ 6.0 s is accepted. Defined in 03.5; 08.2 uses the same values. |
 | ISSUE-027 | 08.3 recorded video vs. "no recording feature in the app" | The camera takes photos only (08.3); videos come only from the gallery (08.2). |
 | ISSUE-028 | One capture time per post vs. up to 5 items taken at different times | Each item has its own taken time (03.1); a text-only post's time is when it was written. Items are placed in the story and assigned to parts individually (ISSUE-031, 033). |
@@ -47,10 +48,10 @@ _None._ New findings go here as:
 | ISSUE-030 | No maximum text length | 2,000 characters, checked on the phone (08.1) and the server (03.1/03.2). |
 | ISSUE-031 | Per-item times stored but unused; story placed whole post at earliest item | Story works on *moments*: each photo/video placed at its own time, with its post's text (11.2, 11.3, 11.5, 11.6). |
 | ISSUE-032 | Location per post vs. items taken in different places | Location stored per item, read from the photo itself; falls back to where the post was written (03.1, 08.4). |
+| ISSUE-033 | "End trip" was final vs. wanting "to be continued" stories mid-trip | **Parts**: the creator wraps up a part anytime; the trip stays open and the next part starts automatically; End trip wraps up the final part. Moments go to parts by taken time. Parts continue each other ("Previously…" / "To be continued…"). A full-trip story comes after the final part. Items taken after the trip ends are dropped from their post with a note (09.1–09.7, 11.2, 11.7, 11.11, 12.1, 12.4, 13.4). |
 | ISSUE-034 | Screenshots/forwards have no real taken time | Use the gallery or added time, marked as an estimate (03.1, 08.4). |
 | ISSUE-035 | Shrinking (08.5) wipes the photo's hidden time/location | 08.4 reads them from the original first and sends them as separate fields. |
 | ISSUE-036 | Phone local time vs. server time | The phone converts all times to UTC before sending (08.4). |
-| ISSUE-033 | "End trip" was final vs. wanting "to be continued" stories mid-trip | **Parts**: the creator wraps up a part anytime; the trip stays open and the next part starts automatically; End trip wraps up the final part. Moments go to parts by taken time. Parts continue each other ("Previously…" / "To be continued…"). A full-trip story comes after the final part. Items taken after the trip ends are dropped from their post with a note (09.1–09.7, 11.2, 11.7, 11.11, 12.1, 12.4, 13.4). |
 | ISSUE-037 | "Every outbox empty" may never happen while the trip continues | Phones report the taken time of their oldest waiting moment (09.4). A part is ready when no phone holds moments from before its cut-off, or when the creator forces it (09.6). |
 | ISSUE-038 | Moments arriving after their part's story is written end up in no story | The full-trip story is written from all moments, reusing saved descriptions (11.3, 11.11). Part stories aren't rewritten. |
 | ISSUE-039 | Full-trip story started right after a forced final part, so late moments missed every story | The full-trip story has its own ready rule: no phone holds moments from the trip, or the creator forces it (09.6, 09.7, 12.1, 13.1). |
@@ -62,6 +63,5 @@ _None._ New findings go here as:
 | ISSUE-045 | (change) Built 01.3 stored `applied_at` as `…+00:00` with microseconds vs. 01.4's one format `…Z` with milliseconds | 01.3's `db.py` now uses `utc_now_iso()`; Changes entry in 01.3; format test added; all tests pass. |
 | ISSUE-046 | Can two members of one trip share a name? | No: names are unique per trip, ignoring case (02.1); a taken name is refused at join (02.5). |
 | ISSUE-047 | Lost phone / reinstall creates a second member | Creator-approved rejoin: new specs 02.7–02.9 and 05.4–05.5; approval replaces the member's `token_hash`. |
-| ISSUE-049 | Found while building 02.1: SQLite's `NOCASE` only folds A–Z, so "Zoë"/"ZOË" or names with extra spaces would slip past the unique-name rule (ISSUE-046) in a destination-agnostic app | Spec updated before code: `members.name_key` (Unicode NFKC + casefold + collapsed spaces, via `name_key()`) carries the per-trip unique constraint. |
 | ISSUE-048 | The creator losing their phone would block every creator-only action | Any other member can approve the creator's rejoin; the first approval wins (02.8, 05.5). Edge: on a solo trip a lost creator phone can't be recovered (accepted). |
-| ISSUE-023 | CLAUDE.md layout said "one tiny spec per feature" vs. features split into specs | Layout line fixed. |
+| ISSUE-049 | Found while building 02.1: SQLite's `NOCASE` only folds A–Z, so "Zoë"/"ZOË" or names with extra spaces would slip past the unique-name rule (ISSUE-046) in a destination-agnostic app | Spec updated before code: `members.name_key` (Unicode NFKC + casefold + collapsed spaces, via `name_key()`) carries the per-trip unique constraint. |
