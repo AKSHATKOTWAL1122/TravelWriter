@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     # Only LLM calls need the key, so the app must start without it.
     gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
     model: str = "gemini-2.5-flash"
+    # Everything the backend stores lives here: the database, media/, and the
+    # story-job checkpoint store (one folder, see ISSUE-044).
+    data_dir: Path = BACKEND_DIR / "data"
 
 
 @lru_cache

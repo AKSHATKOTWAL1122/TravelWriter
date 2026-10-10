@@ -18,19 +18,23 @@ def _settings_env_names() -> set[str]:
 
 
 @pytest.fixture(autouse=True)
-def isolated_settings(monkeypatch):
-    """Keep every test away from the developer's real shell variables and backend/.env."""
+def isolated_settings(monkeypatch, tmp_path):
+    """Keep every test away from the developer's real shell variables, backend/.env and backend/data/."""
     names = _settings_env_names()
     prefix = Settings.model_config["env_prefix"]
     for name in list(os.environ):
         if name.upper() in names or name.upper().startswith(prefix):
             monkeypatch.delenv(name)
     monkeypatch.setitem(Settings.model_config, "env_file", None)
+    # Every test gets its own empty data folder, so a fresh database.
+    monkeypatch.setenv(f"{prefix}DATA_DIR", str(tmp_path / "data"))
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
+def client():
+    # "with" runs the app's startup (migrations), like the real server does.
+    with TestClient(app) as test_client:
+        yield test_client

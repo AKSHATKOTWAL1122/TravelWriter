@@ -51,7 +51,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 |---|---|---|
 | 01.1 | Project setup: `uv`, FastAPI app, `GET /health`, pytest + test client, git repo ([spec](01-backend-foundation/01.1-project-setup.md)) | done |
 | 01.2 | Settings from the environment + `.env.example` ([spec](01-backend-foundation/01.2-settings-from-env.md)) | done |
-| 01.3 | SQLite connection + simple migrations (tests use a throwaway DB) | proposed |
+| 01.3 | SQLite database + numbered migrations (tests use a throwaway DB) ([spec](01-backend-foundation/01.3-database-and-migrations.md)) | done |
 | 01.4 | API conventions: `/api/` prefix, one JSON error shape, ISO-8601 UTC times, string IDs (ISSUE-040) | proposed |
 
 ### 02 Trips (backend)
@@ -69,7 +69,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 |---|---|---|
 | 03.1 | `posts` table (text ≤ 2,000 chars, written time & location, expected item count, complete flag) + `post_media` table (max 5 per post, each with its own taken time (UTC, estimate flag) and location) | proposed |
 | 03.2 | Create-post endpoint (text, written time & location, how many items will follow) | proposed |
-| 03.3 | Media storage on disk (safe names, type and size checks) | proposed |
+| 03.3 | Media storage on disk in `<data dir>/media/` (safe names, type and size checks) | proposed |
 | 03.4 | Add a photo to a post + thumbnail | proposed |
 | 03.5 | Add a video to a post + thumbnail frame; defines the length limit (5 s + 1 s buffer → ≤ 6.0 s accepted) | proposed |
 | 03.6 | Mark a post complete when its last item arrives (text-only posts are complete at once) | proposed |
