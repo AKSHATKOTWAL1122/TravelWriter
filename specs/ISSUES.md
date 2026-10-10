@@ -7,10 +7,9 @@ Spec numbers in the "Clash" column are from the roadmap version where the issue 
 
 ## Open
 
-_None._ New findings go here as:
-
 | ID | Type | Clash | Proposed fix |
 |---|---|---|---|
+| ISSUE-048 | decision | Found while adding the rejoin specs (ISSUE-047): if the **creator** loses their phone, nobody can approve their rejoin (**02.8**). Every creator-only action is then stuck for the whole group: wrapping up parts (**09.2**), ending the trip (**09.3**), forcing a story (**09.6**). | Decide who approves a creator's rejoin. |
 
 ## Resolved
 
@@ -60,4 +59,7 @@ _None._ New findings go here as:
 | ISSUE-043 | Found while building 01.2: the test fixture hid `GEMINI_API_KEY` by name, so a future third-party key with its own standard name (added by a later spec) would leak into tests | The fixture now reads every variable name from `Settings` itself, so new settings are isolated automatically (`backend/tests/conftest.py`). |
 | ISSUE-044 | Separate folder settings for data (01.3), media (03.3) and the checkpoint store (12.3) could drift apart and break photo links | User chose **one** setting, `STORYMAKER_DATA_DIR`: the database, `media/` and the checkpoint store all live inside it (01.3, 03.3). 01.2's note updated via rule 5 (doc only). |
 | ISSUE-045 | (change) Built 01.3 stored `applied_at` as `…+00:00` with microseconds vs. 01.4's one format `…Z` with milliseconds | 01.3's `db.py` now uses `utc_now_iso()`; Changes entry in 01.3; format test added; all tests pass. |
+| ISSUE-046 | Can two members of one trip share a name? | No: names are unique per trip, ignoring case (02.1); a taken name is refused at join (02.5). |
+| ISSUE-047 | Lost phone / reinstall creates a second member | Creator-approved rejoin: new specs 02.7–02.9 and 05.4–05.5; approval replaces the member's `token_hash`. |
+| ISSUE-049 | Found while building 02.1: SQLite's `NOCASE` only folds A–Z, so "Zoë"/"ZOË" or names with extra spaces would slip past the unique-name rule (ISSUE-046) in a destination-agnostic app | Spec updated before code: `members.name_key` (Unicode NFKC + casefold + collapsed spaces, via `name_key()`) carries the per-trip unique constraint. |
 | ISSUE-023 | CLAUDE.md layout said "one tiny spec per feature" vs. features split into specs | Layout line fixed. |

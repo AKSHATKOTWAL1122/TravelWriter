@@ -4,10 +4,14 @@ Every error response looks like {"error": {"code": "...", "message": "..."}}.
 The code is for the app's logic; the message is safe to show to people.
 """
 
+import logging
+
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+log = logging.getLogger(__name__)
 
 API_PREFIX = "/api"
 
@@ -48,8 +52,8 @@ async def _http_error(request: Request, exc: StarletteHTTPException) -> JSONResp
 
 
 async def _unexpected_error(request: Request, exc: Exception) -> JSONResponse:
-    # No details in the response. Starlette re-raises the exception after this
-    # handler, so the server (uvicorn) logs the full traceback.
+    # Full details go to the server log only, never into the response.
+    log.exception("Unexpected error on %s %s", request.method, request.url.path)
     return error_response(500, "internal_error", "Something went wrong on our side. Please try again.")
 
 

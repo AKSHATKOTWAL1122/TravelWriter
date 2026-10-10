@@ -30,6 +30,8 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 
 **Parts & ending the trip**
 - Only the **creator** wraps up parts and ends the trip (ISSUE-003).
+- Member **names are unique within a trip**, ignoring case in any language (ISSUE-046).
+- **Lost phone:** a member can ask to rejoin as themselves; the **creator approves**, and the old phone's login stops working (ISSUE-047).
 - The creator can **wrap up a part** anytime. The trip stays open, posting continues, and the next part starts automatically. **End trip** wraps up the final part (ISSUE-033).
 - Each moment belongs to the part whose time window contains its **taken time**, so one post can span two parts (ISSUE-031, 033).
 - After the trip ends, items **taken before the end** are still accepted. Items taken after the end are dropped from their post, with a note to the poster (ISSUE-001, 033).
@@ -57,12 +59,15 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 ### 02 Trips (backend)
 | Spec | What | Status |
 |---|---|---|
-| 02.1 | `trips` table (incl. status values) + `members` table (incl. creator role) | proposed |
+| 02.1 | `trips` table (incl. status values) + `members` table (incl. creator role) ([spec](02-trips/02.1-trips-and-members-tables.md)) | done |
 | 02.2 | Join-code generator (short, unique, easy to type) | proposed |
 | 02.3 | Create-trip endpoint (caller becomes creator) | proposed |
 | 02.4 | Member token auth (header → current member) | proposed |
 | 02.5 | Join-trip endpoint | proposed |
 | 02.6 | Get-trip endpoint (name, members, status) | proposed |
+| 02.7 | Rejoin request: "I'm already in this trip" (code + existing name → pending request) | proposed |
+| 02.8 | Creator approves or declines a rejoin request; on approval the member gets a new token and the old one stops working | proposed |
+| 02.9 | Requester checks the request and receives the new token once approved | proposed |
 
 ### 03 Posting (backend)
 | Spec | What | Status |
@@ -90,6 +95,8 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 05.1 | Create-trip screen | proposed |
 | 05.2 | Join-trip screen | proposed |
 | 05.3 | Share invite code via share sheet | proposed |
+| 05.4 | "I'm already in this trip" screen + waiting for approval | proposed |
+| 05.5 | Creator's rejoin requests: approve / decline | proposed |
 
 ### 06 Timeline (mobile)
 | Spec | What | Status |
