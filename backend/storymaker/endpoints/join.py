@@ -29,6 +29,20 @@ class JoinTripResponse(BaseModel):
     token: str
 
 
+def trip_by_code(conn: sqlite3.Connection, typed_code: str) -> Trip:
+    """The trip with this code, however it was typed (spec 02.2). Also used for rejoining (02.7)."""
+    try:
+        code = normalize_join_code(typed_code)
+    except ValueError:
+        code = None
+    row = code and conn.execute(
+        "SELECT id, name, join_code, status, created_at FROM trips WHERE join_code = ?", (code,)
+    ).fetchone()
+    if not row:
+        raise ApiError(404, "trip_not_found", "No trip has that code. Check it and try again.")
+    return Trip(**dict(row))
+
+
 def _name_in_use(conn: sqlite3.Connection, trip_id: str, key: str) -> bool:
     return conn.execute("SELECT 1 FROM members WHERE trip_id = ? AND name_key = ?", (trip_id, key)).fetchone() is not None
 
@@ -45,17 +59,7 @@ def _name_taken() -> ApiError:
 @api_router.post("/trips/join", status_code=201)
 def join_trip(body: JoinTripRequest, conn: Annotated[sqlite3.Connection, Depends(get_db)]) -> JoinTripResponse:
     """Join a trip with its code. No token needed; ended trips can still be joined."""
-    try:
-        code = normalize_join_code(body.join_code)
-    except ValueError:
-        code = None
-    row = code and conn.execute(
-        "SELECT id, name, join_code, status, created_at FROM trips WHERE join_code = ?", (code,)
-    ).fetchone()
-    if not row:
-        raise ApiError(404, "trip_not_found", "No trip has that code. Check it and try again.")
-    trip = Trip(**dict(row))
-
+    trip = trip_by_code(conn, body.join_code)
     key = name_key(body.display_name)
     if _name_in_use(conn, trip.id, key):
         raise _name_taken()
