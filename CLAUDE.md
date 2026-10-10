@@ -39,6 +39,8 @@ or group size. Posts may be in any language; the story is always written in Engl
 8. When a spec is done, tick its acceptance boxes and mark it `Status: done` in `specs/README.md`.
 9. **Git:** build each spec (or change) on its own branch, `spec/<id>-<slug>`. Once all its acceptance
    checks pass, commit with the message `<id>: <title>` and merge into `main`. `main` only holds finished work.
+   Then scan what's being pushed for secrets (API keys, `.env` files) and push `main` to GitHub
+   (`origin` = https://github.com/AKSHATKOTWAL1122/TravelWriter, a **public** repo). Never push if the scan finds anything.
 
 ## Stack
 
