@@ -39,8 +39,10 @@ or group size. Posts may be in any language; the story is always written in Engl
 8. When a spec is done, tick its acceptance boxes and mark it `Status: done` in `specs/README.md`.
 9. **Git:** build each spec (or change) on its own branch, `spec/<id>-<slug>`. Once all its acceptance
    checks pass, commit with the message `<id>: <title>` and merge into `main`. `main` only holds finished work.
-   Then scan what's being pushed for secrets (API keys, `.env` files) and push `main` to GitHub
-   (`origin` = https://github.com/AKSHATKOTWAL1122/TravelWriter, a **public** repo). Never push if the scan finds anything.
+   Before every push, run the repo audit (`python3 scripts/audit.py --rev main`, spec 00.1) **and** all tests
+   (backend and audit). Push `main` to GitHub (`origin` = https://github.com/AKSHATKOTWAL1122/TravelWriter,
+   a **public** repo) only if both pass. The audit also scans for secrets and local files (`.env`, databases).
+   If the format of the roadmap, issues log or spec files changes, update `scripts/audit.py` in the same change.
 
 ## Stack
 
@@ -59,6 +61,7 @@ or group size. Posts may be in any language; the story is always written in Engl
 backend/      FastAPI app, LangGraph agents, tests
 mobile/       Expo app
 specs/        <feature>/<id>-<slug>.md small specs, README.md (roadmap, decisions, status), ISSUES.md
+scripts/      repo tooling: audit.py (run before every push) and its tests
 ```
 
 ## Rules
@@ -85,3 +88,10 @@ Backend (run from `backend/`):
 | Install | `uv sync` |
 | Run (reachable from phones on the same Wi-Fi) | `uv run uvicorn storymaker.main:app --host 0.0.0.0 --port 8000 --reload` |
 | Test | `uv run pytest` |
+
+Repo (run from the repo root, plain `python3`, no install needed):
+
+| What | Command |
+|---|---|
+| Audit before pushing | `python3 scripts/audit.py --rev main` |
+| Audit tests | `python3 -m unittest discover scripts` |

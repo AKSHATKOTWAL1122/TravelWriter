@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** build **00.1** (approved, not built yet), then write spec **02.2** (join codes).
+**Next up:** write spec **02.2** (join codes).
 
 ## Terms
 
@@ -53,7 +53,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 ### 00 Project tooling
 | Spec | What | Status |
 |---|---|---|
-| 00.1 | Repo audit before every push: specs ↔ roadmap ↔ issues ↔ settings ↔ CLAUDE.md, plus secrets and hygiene ([spec](00-project-tooling/00.1-repo-audit.md)) | approved |
+| 00.1 | Repo audit before every push: specs ↔ roadmap ↔ issues ↔ settings ↔ CLAUDE.md, plus secrets and hygiene ([spec](00-project-tooling/00.1-repo-audit.md)) | done |
 
 ### 01 Backend foundation
 | Spec | What | Status |
