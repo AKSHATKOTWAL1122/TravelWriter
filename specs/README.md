@@ -7,7 +7,7 @@ e.g. `specs/02-trips/02.3-create-trip-endpoint.md`. Open clashes are tracked in 
 Status: `proposed` (roadmap line only) → `written` (spec file exists, awaiting approval) → `approved` → `done`.
 A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.md rule 5).
 
-**Next up:** write spec **02.5** (join-trip endpoint).
+**Next up:** write spec **02.6** (get-trip endpoint).
 
 ## Terms
 
@@ -40,6 +40,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 - The creator can **wrap up a part** anytime. The trip stays open, posting continues, and the next part starts automatically. **End trip** wraps up the final part (ISSUE-033).
 - Each moment belongs to the part whose time window contains its **taken time**, so one post can span two parts (ISSUE-031, 033).
 - After the trip ends, items **taken before the end** are still accepted. Items taken after the end are dropped from their post, with a note to the poster (ISSUE-001, 033).
+- **New people can still join an ended trip** with its code, to read the stories and add moments taken during the trip. Their moments reach the full-trip story only if it hasn't been written yet (02.5).
 - A part's story starts once **no phone still holds moments taken before the part's cut-off**, or when the **creator forces it**. Nobody is waited for automatically; the creator sees who's still holding moments (ISSUE-017, 022, 037).
 
 **Stories**
@@ -73,7 +74,7 @@ A built spec that's being changed goes `done` → `changing` → `done` (CLAUDE.
 | 02.2 | Join-code generator (short, unique, easy to type) ([spec](02-trips/02.2-join-code-generator.md)) | done |
 | 02.3 | Create-trip endpoint (caller becomes creator) + name rules + member tokens ([spec](02-trips/02.3-create-trip-endpoint.md)) | done |
 | 02.4 | Member token auth (header → current member) ([spec](02-trips/02.4-member-token-auth.md)) | done |
-| 02.5 | Join-trip endpoint (name rules from 02.3) | proposed |
+| 02.5 | Join-trip endpoint (name rules from 02.3) ([spec](02-trips/02.5-join-trip-endpoint.md)) | done |
 | 02.6 | Get-trip endpoint (name, members, status) | proposed |
 | 02.7 | Rejoin request: "I'm already in this trip" (code + existing name → pending request) | proposed |
 | 02.8 | Approve or decline a rejoin request: the creator decides (any other member, if it's the creator rejoining); on approval the member gets a new token and the old one stops working | proposed |
